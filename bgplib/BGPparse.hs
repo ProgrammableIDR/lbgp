@@ -1,4 +1,5 @@
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE FlexibleInstances #-}
 module BGPparse where
 import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString as B
@@ -58,6 +59,9 @@ isUpdate :: BGPMessage -> Bool
 isUpdate BGPUpdate{} = True
 isUpdate _ = False
 
+instance {-# OVERLAPPING #-} Binary [BGPMessage] where
+    put _ = error "it would not make sense to encode BGPmessage list without a wireformat envelope"
+
 instance Binary BGPMessage where
 
     put (BGPOpen myAutonomousSystem holdTime bgpID caps) = do putWord8 _BGPOpen
@@ -79,9 +83,6 @@ instance Binary BGPMessage where
                                                                where
                                                                    withdrawnRoutesLength = fromIntegral $ L.length withdrawnRoutes
                                                                    pathAttributesLength = fromIntegral $ L.length pathAttributes
-                                                                   nlriLength = fromIntegral $ L.length nlri
-                                                                   nonPrefixLength = 16 + 2 + 1 + 2 + 2 + pathAttributesLength
-                                                                   availablePrefixSpace = 4096 - nonPrefixLength
 
     put (BGPNotify code subCode caps) = do putWord8 _BGPNotify
                                            putWord8 $ encode8 code

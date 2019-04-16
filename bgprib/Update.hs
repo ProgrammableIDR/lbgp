@@ -1,5 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
-module Update(encodeUpdates,processUpdate,getUpdate,ungetUpdate,ParsedUpdate(..),makeUpdate,makeUpdateSimple,igpUpdate,originateWithdraw,originateUpdate,myHash) where
+module Update(modifyPathAttributes,endOfRib,encodeUpdates,processUpdate,getUpdate,ungetUpdate,ParsedUpdate(..),makeUpdate,makeUpdateSimple,igpUpdate,originateWithdraw,originateUpdate,myHash) where
 import qualified Data.ByteString.Lazy as L
 import Data.Int
 import Data.Binary
@@ -14,6 +14,9 @@ myHash :: L.ByteString -> Int
 myHash = fromIntegral . hash64 . L.toStrict
 
 data ParsedUpdate = ParsedUpdate { puPathAttributes :: [PathAttribute], nlri :: [Prefix], withdrawn :: [Prefix], hash :: Int } | NullUpdate deriving Show
+
+modifyPathAttributes :: ([PathAttribute] -> [PathAttribute]) -> ParsedUpdate -> ParsedUpdate
+modifyPathAttributes f pu = pu { puPathAttributes = f $ puPathAttributes pu }
 
 parseUpdate a n w = (decodedAttributes,decodedNlri,decodedWithdrawn)
     where
@@ -42,31 +45,25 @@ encodeUpdates = map ungetUpdate
 ungetUpdate :: ParsedUpdate -> BGPMessage
 ungetUpdate ParsedUpdate{..} = BGPUpdate { withdrawn = encode withdrawn , attributes = encode puPathAttributes , nlri = encode nlri } 
 
+endOfRib :: BGPMessage
+endOfRib = BGPUpdate { withdrawn = L.empty , attributes = L.empty , nlri = L.empty }
+
 getUpdate :: BGPMessage -> ParsedUpdate
 getUpdate BGPUpdate{..} = ParsedUpdate { puPathAttributes = a , nlri = n , withdrawn = w,
                                         hash = myHash attributes  }
                                where (a,n,w) = validResult $ parseUpdate attributes nlri withdrawn
 
--- TODO clean up the mess here around error handling.....
-processUpdate :: BGPMessage -> Maybe ParsedUpdate
+processUpdate :: BGPMessage -> Either String ParsedUpdate
 processUpdate ( BGPUpdate w a n ) = 
     let parsedResult = parseUpdate a n w
         (puPathAttributes,nlri,withdrawn) = validResult parsedResult
         hash = myHash a
     in
-    if parseSuccess parsedResult then Just (ParsedUpdate puPathAttributes nlri withdrawn hash)
-    -- for 'production' use this should be 'Nothing', in which case the session will be dropped....
-    -- a better solution (**TODO**) would be to change the retrun type to 'either' and log the text later....
-    -- else Nothing
-    else error $
+    if parseSuccess parsedResult then Right (ParsedUpdate puPathAttributes nlri withdrawn hash)
+    else Left $
         "parsing failed: " ++
         parseErrorMesgs parsedResult ++
         diagoseResult parsedResult (a,n,w)
-{- informative error message is:
-        "parsing failed: "
-        parseErrorMesgs parsedResult
-        diagoseResult parsedResult (a,n,w)
--}
 
 originateWithdraw prefixes = ParsedUpdate []  [] prefixes 0
 
@@ -84,11 +81,8 @@ makeUpdate' nlri withdrawn attributes = ParsedUpdate attributes nlri withdrawn (
 
 makeSegmentedUpdate :: [Prefix] -> [Prefix] -> [PathAttribute] -> [ParsedUpdate]
 makeSegmentedUpdate nlri withdrawn attributes = result where
-                                                    withdrawnRoutesLength = L.length (encode withdrawn)
                                                     pathAttributesLength = L.length (encode attributes)
-                                                    nlriLength = L.length (encode nlri)
                                                     nonPrefixLength = 16 + 2 + 1 + 2 + 2 + pathAttributesLength
-                                                    nominalLength = nonPrefixLength + withdrawnRoutesLength + nlriLength
                                                     availablePrefixSpace = fromIntegral (4096 - nonPrefixLength) :: Int64
                                                     chunkedNlri = chunkPrefixes availablePrefixSpace nlri
                                                     chunkedWithdrawn = chunkPrefixes availablePrefixSpace withdrawn

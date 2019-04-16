@@ -1,10 +1,14 @@
 {-# LANGUAGE DuplicateRecordFields,RecordWildCards #-}
 module Main where
 
+import Paths_router(version)
+import Data.Version(showVersion)
 import System.Environment(getArgs)
 import System.IO
+import System.Exit
+import Data.List(intersect)
 import Network.Socket
-import Session
+import qualified Session
 import Control.Concurrent
 import qualified Data.Map.Strict as Data.Map
 
@@ -18,27 +22,28 @@ import Log
 
 main :: IO ()
 main = do
-    config <- getConfig
+    info $ "hBGP " ++ showVersion version
 
-    info "Router starting"
+    config <- getConfig
 
     global <- buildGlobal config
 
-    forkIO (redistribute global)
+    _ <- forkIO (redistribute global)
     
     let
         app = bgpFSM global
 
     info $ "connecting to " ++ show (activePeers config)
     info $ "activeOnly = " ++ show (activeOnly config)
-    print config
-    session 179 app (activePeers config) (not $ activeOnly config)
+    --print config
+    Session.session 179 app (configListenAddress config) (activePeers config) (not $ activeOnly config)
     info "Router ready"
     idle where idle = do threadDelay 10000000
                          idle
 
 getConfig = do
     args <- getArgs
+    if not $ null $ intersect args ["--version","-V","-v"] then exitSuccess else return ()
     --let n = if 1 < length args then read (args !! 1) :: Int else 0
     let n = 0 -- kludge until this is patched to support ArgConfig style parameters.....
     let configPath = if null args then "bgp.conf" else head args
