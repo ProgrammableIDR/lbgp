@@ -155,7 +155,9 @@ updateRibOutWithPeerData :: PeerData -> RouteData -> [IPrefix] -> AdjRIB -> IO (
 -- this is OK since we only get the routeId in this function
 
 updateRibOutWithPeerData originPeer routeData updates adjRib = do
-    let updateWithKey destinationPeer table = if (destinationPeer /= originPeer) && ( isExternal destinationPeer || isExternal originPeer )
+-- ************ FIX / PTRACH to enable 'Route Refelector' for test puposes - i.e. send routes between iBGP peers.....
+--  let updateWithKey destinationPeer table = if (destinationPeer /= originPeer) && ( isExternal destinationPeer || isExternal originPeer )
+    let updateWithKey destinationPeer table = if (destinationPeer /= originPeer)
                                then insertAdjRIBTable (updates, routeId routeData ) table
                                else ( return ())
     when ( null updates )
