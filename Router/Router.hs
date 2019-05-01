@@ -1,7 +1,7 @@
 {-# LANGUAGE DuplicateRecordFields,RecordWildCards #-}
 module Main where
 
-import Paths_router(version)
+import Paths_hbgp(version)
 import Data.Version(showVersion)
 import System.Environment(getArgs)
 import System.IO
