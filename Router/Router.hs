@@ -1,5 +1,5 @@
 {-# LANGUAGE DuplicateRecordFields,RecordWildCards #-}
-module Router.Main where
+module Main where
 
 import Paths_router(version)
 import Data.Version(showVersion)

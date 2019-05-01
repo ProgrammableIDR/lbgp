@@ -8,11 +8,11 @@ import Data.Word
 import Control.Concurrent
 import Control.Monad(when)
 
-import BGPlib
-import BGPRib hiding ( ribPush, addPeer)
-import UpdateSource
-import Log
-import ArgConfig
+import BGPlib.BGPlib
+import BGPRib.BGPRib hiding ( ribPush, addPeer)
+import Router.UpdateSource
+import Router.Log
+import Router.ArgConfig
 
 zeroDay :: UTCTime
 zeroDay = UTCTime (ModifiedJulianDay 0) 0.0

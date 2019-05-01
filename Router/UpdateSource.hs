@@ -6,8 +6,8 @@ import Control.Concurrent
 import Data.Bits
 import Control.Monad
 
-import BGPlib
-import BGPRib hiding ( group,update )
+import BGPlib.BGPlib
+import BGPRib.BGPRib hiding ( group,update )
 
 type UpdateSource = IO [BGPMessage]
 
