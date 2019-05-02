@@ -22,7 +22,7 @@ import Router.Log
 
 main :: IO ()
 main = do
-    info $ "hBGP " ++ showVersion version
+    info $ "hbgp " ++ showVersion version
 
     config <- getConfig
 
