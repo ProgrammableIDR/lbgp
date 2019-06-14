@@ -1,22 +1,25 @@
-{-# LANGUAGE FlexibleInstances #-}
 module BGPRib.Common (module BGPRib.Common, module Data.IP) where
-import Data.IP -- from package iproute
+import Data.IP
 import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString.Char8 as C8
-import qualified Data.HashMap.Strict
-import Data.Hashable
-import Data.Maybe()
+import qualified Data.ByteString.Base16 as Base16
+import qualified Data.HashMap.Strict as HashMap
+import Data.Hashable(Hashable)
 
-import qualified Data.ByteString.Base16 as Base16 -- from package base16-bytestring
-
-toHex :: C8.ByteString -> [Char]
+toHex :: C8.ByteString -> String
 toHex = C8.unpack . Base16.encode
 
-toHex' :: L.ByteString -> [Char]
+toHex' :: L.ByteString -> String
 toHex' = toHex . L.toStrict
 
+-- this is a (hopefully) effiecent function in cae of large list based maps
+-- which partitions values with a common key into distinct lists
 groupBy_ :: (Eq k,Hashable k) => [(k, a)] -> [(k, [a])]
-groupBy_ = Data.HashMap.Strict.toList . Data.HashMap.Strict.fromListWith (++) . Prelude.map (\(a,b) -> (a,[b]))
+groupBy_ = HashMap.toList . fromList where
+           fromList = foldl (\m (k,v) -> HashMap.alter (Just . maybe [v] (v :)) k m) HashMap.empty
+
+-- ugly old definition...
+--groupBy_ = HashMap.toList . HashMap.fromListWith (++) . Prelude.map (\(a,b) -> (a,[b]))
 
 -- group and groupBy_ perform the same functions - hopefully, for small datasets at least, group is faster - e.g. for a handful of equivalent elements
 group :: Eq a => [(a, b)] -> [(a, [b])]
