@@ -30,7 +30,7 @@ data State = State { port :: NS.PortNumber
                    }
 
 logger :: String -> IO ()
-logger = putStrLn
+logger s = putStrLn s >> hFlush stdout
 -- logger _ = return ()
 
 debug :: String -> IO ()
