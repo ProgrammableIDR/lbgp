@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances,BangPatterns #-}
+{-# LANGUAGE FlexibleInstances #-}
 module BGPlib.GetBGPMsg where
 
 import System.Timeout(timeout)

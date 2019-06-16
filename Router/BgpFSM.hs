@@ -34,7 +34,6 @@ import Router.Log
 import Session.Session(fdWaitOnQEmpty)
 
 data FSMState = St { handle :: Handle
-                   , fd :: SPT.Fd
                    , peerName :: SockAddr
                    , socketName :: SockAddr
                    , osm :: OpenStateMachine
@@ -71,7 +70,7 @@ bgpFSM global@Global{..} ( sock , peerName ) =
                                                else Nothing)
                              fsmExitStatus <-
                                          catch
-                                             (runFSM global socketName peerName handle fd maybePeer )
+                                             (runFSM global socketName peerName handle maybePeer )
                                              (\(FSMException s) ->
                                                  return $ Left s)
                              -- TDOD throuuigh testing around delPeer
@@ -111,10 +110,10 @@ bgpSndAll h msgs = do
 
 get :: Handle -> Int -> IO BGPMessage
 get b t | t > 0     = fmap decodeBGPByteString (getRawMsg b t)
-        | otherwise = fmap decodeBGPByteString (getNext b )
+        | otherwise = error "state machine should never set zero timeout for a handle read"
 
-runFSM :: Global -> SockAddr -> SockAddr -> Handle -> SPT.Fd -> Maybe PeerConfig -> IO (Either String String)
-runFSM g@Global{..} socketName peerName handle fd =
+runFSM :: Global -> SockAddr -> SockAddr -> Handle -> Maybe PeerConfig -> IO (Either String String)
+runFSM g@Global{..} socketName peerName handle =
 -- The 'Maybe PeerData' allows the FSM to handle unwanted connections, i.e. send BGP Notification
 -- thereby absolving the caller from having and BGP protocol awareness
     maybe (do bgpSnd handle $ BGPNotify NotificationCease _NotificationCeaseSubcodeConnectionRejected L.empty
@@ -124,7 +123,6 @@ runFSM g@Global{..} socketName peerName handle fd =
                                                        peerName = peerName
                                                      , socketName = socketName
                                                      , handle = handle
-                                                     , fd = fd
                                                      , osm = initialiseOSM g peerConfig
                                                      , peerConfig = peerConfig
                                                      , maybePD = Nothing
