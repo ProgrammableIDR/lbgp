@@ -13,7 +13,6 @@ import Data.Maybe(fromJust,isJust,fromMaybe)
 import Data.Either(either)
 import qualified Data.Map.Strict as Data.Map
 import System.Posix.Temp(mkstemp)
-import qualified System.Posix.Types as SPT
 import Control.Applicative ((<|>))
 
 import BGPlib.BGPlib
@@ -59,7 +58,6 @@ bgpFSM global@Global{..} ( sock , peerName ) =
                              socketName <- getSocketName sock
                              let (SockAddrInet remotePort remoteIP) = peerName
                                  (SockAddrInet localPort localIP)   = socketName
-                             fd <- SPT.Fd <$> fdSocket sock
                              handle <- socketToHandle sock ReadWriteMode
 
                              -- lookup explicit local IP then failover to widlcard adn eventually, if allowed, a dynamic peer
