@@ -1,4 +1,4 @@
---cabal-version:       2.4
+cabal-version:       2.4
 
 name:                hbgp
 version:             0.2.0.4
@@ -14,13 +14,13 @@ library
   exposed-modules:     ZServ.ZMsg, ZServ.ZSpec, ZServ.WireFormat, ZServ.Debug, ZServ.ZServ, ZServ.ZMsgBinary, Router.Config, Router.StdRib, Router.BgpFSM, Router.Collision, Router.Open, Router.Log, Router.CustomRib, Router.ArgConfig, Router.Redistributor, Router.PrefixSource, Router.Global, Session.Session, BGPRib.PrefixTableUtils, BGPRib.PathFilter, BGPRib.BGPReader, BGPRib.BGPRib, BGPRib.Update, BGPRib.BGPData, BGPRib.PrefixTable, BGPRib.AdjRIBOut, BGPRib.Common, BGPRib.BogonFilter, BGPRib.Rib, BGPRib.Fifo, BGPlib.Prefixes, BGPlib.PathAttributeUtils, BGPlib.PathAttributes, BGPlib.Capabilities, BGPlib.BGPlib, BGPlib.BGPlib4, BGPlib.Codes, BGPlib.PathAttributeUtils4, BGPlib.ASPath4, BGPlib.ASPath, BGPlib.LibCommon, BGPlib.PathAttributes4, BGPlib.RFC4271, BGPlib.GetBGPMsg, BGPlib.BGPparse
   other-modules: Router.UpdateSource
   other-extensions:    DataKinds, DuplicateRecordFields, RecordWildCards, MultiWayIf, OverloadedStrings, FlexibleInstances, TupleSections, Strict, MultiParamTypeClasses, FunctionalDependencies, ForeignFunctionInterface, TypeSynonymInstances, FlexibleContexts, DeriveGeneric, BangPatterns, ConstrainedClassMethods
-  build-depends:       base , bytestring , iproute , attoparsec , attoparsec-binary , base16-bytestring , pretty-hex , io-streams , network , binary , containers , time , unix , sorted-list , hashable , unordered-containers , sorted-list , farmhash , extra
+  build-depends:       base , bytestring ^>=0.10.8.2, iproute ^>=1.7.7, attoparsec ^>=0.13.2.2, attoparsec-binary ^>=0.2, base16-bytestring ^>=0.1.1.6, pretty-hex ^>=1.0, io-streams ^>=1.5.1.0, network ^>=3.0.1.0, binary ^>=0.8.6.0, containers ^>=0.6.0.1, time ^>=1.8.0.2, unix ^>=2.7.2.2, sorted-list ^>=0.2.1.0, hashable ^>=1.3.0.0, unordered-containers ^>=0.2.10.0, sorted-list >=0.2 && <0.3, farmhash >= 0.1.0.5 && < 0.20, extra >= 1.6.12 && < 1.7
   default-language:    Haskell2010
 
 executable hbgp
   main-is:             Router/Router.hs
   other-modules: BGPRib.AdjRIBOut , BGPRib.BGPData , BGPRib.BGPReader , BGPRib.BGPRib , BGPRib.BogonFilter , BGPRib.Common , BGPRib.Fifo , BGPRib.PathFilter , BGPRib.PrefixTable , BGPRib.PrefixTableUtils , BGPRib.Rib , BGPRib.Update , BGPlib.ASPath , BGPlib.BGPlib , BGPlib.BGPparse , BGPlib.Capabilities , BGPlib.Codes , BGPlib.GetBGPMsg , BGPlib.LibCommon , BGPlib.PathAttributeUtils , BGPlib.PathAttributes , BGPlib.Prefixes , BGPlib.RFC4271 , Paths_hbgp , Router.BgpFSM , Router.Collision , Router.Config , Router.Global , Router.Log , Router.Open , Router.Redistributor , Router.StdRib , Session.Session , ZServ.Debug , ZServ.WireFormat , ZServ.ZMsg , ZServ.ZMsgBinary , ZServ.ZServ , ZServ.ZSpec
   other-extensions:    DataKinds, DuplicateRecordFields, RecordWildCards, MultiWayIf, OverloadedStrings, FlexibleInstances, TupleSections, Strict, MultiParamTypeClasses, FunctionalDependencies, ForeignFunctionInterface, TypeSynonymInstances, FlexibleContexts, DeriveGeneric, BangPatterns, ConstrainedClassMethods
-  build-depends:       base , bytestring , iproute , attoparsec , attoparsec-binary , base16-bytestring , pretty-hex , io-streams , network , binary , containers , time , unix , sorted-list , hashable , unordered-containers , sorted-list , farmhash , extra
+  build-depends:       base , bytestring ^>=0.10.8.2, iproute ^>=1.7.7, attoparsec ^>=0.13.2.2, attoparsec-binary ^>=0.2, base16-bytestring ^>=0.1.1.6, pretty-hex ^>=1.0, io-streams ^>=1.5.1.0, network ^>=3.0.1.0, binary ^>=0.8.6.0, containers ^>=0.6.0.1, time ^>=1.8.0.2, unix ^>=2.7.2.2, sorted-list ^>=0.2.1.0, hashable ^>=1.3.0.0, unordered-containers ^>=0.2.10.0, sorted-list >=0.2 && <0.3, farmhash >= 0.1.0.5 && < 0.20, extra >= 1.6.12 && < 1.7
   default-language:    Haskell2010
 

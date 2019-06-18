@@ -14,6 +14,9 @@ import System.IO.Error
 import GHC.IO.Exception(ioe_description)
 import Foreign.C.Error
 
+-- defaultPort not defined in some versions of Network.Socket
+defaultPort :: NS.PortNumber
+defaultPort = 0
 
 type App = ((NS.Socket,NS.SockAddr) -> IO ())
 type RaceCheck = ((IPv4,IPv4) -> IO Bool)
@@ -172,7 +175,7 @@ run state@State{..} (src,dst) = do
         catchIOError
         ( do sock <- NS.socket NS.AF_INET NS.Stream NS.defaultProtocol
              NS.setSocketOption sock NS.NoDelay 1
-             NS.bind sock (NS.SockAddrInet NS.defaultPort $ toHostAddress src)
+             NS.bind sock (NS.SockAddrInet defaultPort $ toHostAddress src)
              NS.connect sock $ NS.SockAddrInet port $ toHostAddress dst
              return $ Just sock )
 
