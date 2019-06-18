@@ -1,7 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE MultiWayIf #-}
-module Session.Session ( module Session.Session
-                       , module Session.Poll ) where
+module Session.Session where
 
 import Data.Maybe
 import Control.Concurrent
@@ -14,7 +13,6 @@ import qualified Data.Map.Strict as Data.Map
 import System.IO.Error
 import GHC.IO.Exception(ioe_description)
 import Foreign.C.Error
-import Session.Poll(fdWaitOnQEmpty,waitOnQEmpty)
 
 
 type App = ((NS.Socket,NS.SockAddr) -> IO ())

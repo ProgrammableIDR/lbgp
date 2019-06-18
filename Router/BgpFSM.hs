@@ -30,7 +30,6 @@ import Router.Collision
 import Router.Global
 import Router.Config
 import Router.Log
-import Session.Session(fdWaitOnQEmpty)
 
 data FSMState = St { handle :: Handle
                    , peerName :: SockAddr
@@ -324,10 +323,6 @@ runFSM g@Global{..} socketName peerName handle =
 
     sendLoop handle rh = catch
         ( do
-             -- this forces a delay until the TCP ACK for all sent messages
-             -- however there could still be a lot (500kb?) of data in the receiver's queue.
-             -- fdWaitOnQEmpty fd
-
              updates <- Rib.ribPull rh
              bgpMessagesPut updates
              sendLoop handle rh
