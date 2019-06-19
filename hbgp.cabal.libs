@@ -1,7 +1,7 @@
-cabal-version:       2.2
+--cabal-version:       2.4
 
 name:                hbgp
-version:             0.2.1.1
+version:             0.2.1.0
 license:             Apache-2.0
 license-file:        LICENSE
 author:              nic hart
@@ -9,6 +9,13 @@ maintainer:          nic@hdb3.net
 copyright:           Nicholas Hart
 category:            Network
 extra-source-files:  README.md
+
+library
+  exposed-modules:     ZServ.ZMsg, ZServ.ZSpec, ZServ.WireFormat, ZServ.Debug, ZServ.ZServ, ZServ.ZMsgBinary, Router.Config, Router.StdRib, Router.BgpFSM, Router.Collision, Router.Open, Router.Log, Router.CustomRib, Router.ArgConfig, Router.Redistributor, Router.PrefixSource, Router.Global, Session.Session, BGPRib.PrefixTableUtils, BGPRib.PathFilter, BGPRib.BGPReader, BGPRib.BGPRib, BGPRib.Update, BGPRib.BGPData, BGPRib.PrefixTable, BGPRib.AdjRIBOut, BGPRib.Common, BGPRib.BogonFilter, BGPRib.Rib, BGPRib.Fifo, BGPlib.Prefixes, BGPlib.PathAttributeUtils, BGPlib.PathAttributes, BGPlib.Capabilities, BGPlib.BGPlib, BGPlib.BGPlib4, BGPlib.Codes, BGPlib.PathAttributeUtils4, BGPlib.ASPath4, BGPlib.ASPath, BGPlib.LibCommon, BGPlib.PathAttributes4, BGPlib.RFC4271, BGPlib.GetBGPMsg, BGPlib.BGPparse
+  other-modules: Router.UpdateSource
+  other-extensions:    DataKinds, DuplicateRecordFields, RecordWildCards, MultiWayIf, OverloadedStrings, FlexibleInstances, TupleSections, Strict, MultiParamTypeClasses, FunctionalDependencies, ForeignFunctionInterface, TypeSynonymInstances, FlexibleContexts, DeriveGeneric, BangPatterns, ConstrainedClassMethods
+  build-depends:       base , bytestring , iproute , attoparsec , attoparsec-binary , base16-bytestring , pretty-hex , io-streams , network , binary , containers , time , unix , sorted-list , hashable , unordered-containers , sorted-list , farmhash , extra
+  default-language:    Haskell2010
 
 executable hbgp
   main-is:             Router/Router.hs
