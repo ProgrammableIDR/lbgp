@@ -84,10 +84,10 @@ instance Binary BGPMessage where
                                                                    withdrawnRoutesLength = fromIntegral $ L.length withdrawnRoutes
                                                                    pathAttributesLength = fromIntegral $ L.length pathAttributes
 
-    put (BGPNotify code subCode caps) = do putWord8 _BGPNotify
-                                           putWord8 $ encode8 code
-                                           putWord8 subCode
-                                           putLazyByteString $ encode caps
+    put (BGPNotify code subCode errData) = do putWord8 _BGPNotify
+                                              putWord8 $ encode8 code
+                                              putWord8 subCode
+                                              putLazyByteString errData
 
     put BGPKeepalive                                = putWord8 _BGPKeepalive
 
