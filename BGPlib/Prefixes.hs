@@ -68,6 +68,7 @@ instance Read Prefix where
         readSipfx s = let (a,s') = head $ readsPrec 0 s in [(fromAddrRange a,s')]
 
 instance Hashable Prefix
+instance Hashable IPrefix
 instance Hashable IPv4
 instance Hashable IPv6
 
@@ -164,6 +165,18 @@ enumeratePrefixes = map (\pfx -> (getLength pfx, pfx)) where
                                    | subnet < 25 = 4
                                    | subnet < 33 = 5
                                    | otherwise = error $ "subnet mask of " ++ show subnet ++ " is > 32"
+
+instance Binary IPrefix where 
+    put = putPrefix . toPrefix
+        where
+            putPrefix = put :: Prefix -> Put
+    get = fromPrefix <$> getPrefix
+        where
+            getPrefix = get :: Get Prefix
+
+instance {-# OVERLAPPING #-} Binary [IPrefix] where
+    put = putn
+    get = getn
 
 instance Binary Prefix where
 
