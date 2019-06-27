@@ -2,7 +2,12 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE BangPatterns #-}
-module BGPlib.Prefixes where
+module BGPlib.Prefixes(Prefix,IPrefix,chunkPrefixes,toPrefix,toAddrRange,subnet,toIPrefix,fromIPrefix,fromPrefixes,fromAddrRange , toPrefixes) where
+-- chunkPrefixes used in BGPlib.Update
+-- toPrefix , toAddrRange , subnet used in BGPRib.BogonFilter
+-- IPrefix() used in at least BGPRib.PrefixTable , now toIPrefix and fromIPrefix
+-- fromPrefixes used in BGPRib/Rib
+-- fromAddrRange , toPrefixes used in Router/StdRib
 import Data.Binary
 import Data.Hashable
 import GHC.Generics(Generic)
@@ -32,6 +37,13 @@ import BGPlib.LibCommon
 
 data Prefix = Prefix !(Word8,Word32) deriving (Eq,Generic)
 newtype IPrefix = IPrefix Int deriving (Eq,Generic)
+
+toIPrefix :: Int -> IPrefix
+toIPrefix i = IPrefix i
+
+fromIPrefix :: IPrefix -> Int
+fromIPrefix (IPrefix ipfx) = ipfx
+
 toPrefix :: IPrefix -> Prefix
 toPrefix (IPrefix w64) = Prefix (fromIntegral $ unsafeShiftR w64 32, fromIntegral $ 0xffffffff .&. w64)
 fromPrefix :: Prefix -> IPrefix
@@ -81,8 +93,8 @@ subnet (Prefix (s,_)) = s
 
 ip :: Prefix -> Word32
 ip (Prefix (_,i)) = i
- 
-instance {-# OVERLAPPING #-} Binary [AddrRange IPv4] where 
+
+instance {-# OVERLAPPING #-} Binary [AddrRange IPv4] where
     get = fmap (map toAddrRange) getPrefixes where
         getPrefixes :: Get [Prefix]
         getPrefixes = get
@@ -136,7 +148,7 @@ fromAddrRange ar = Prefix (fromIntegral subnet, byteSwap32 $ toHostAddress ip) w
 
 -- encodedChunkPrefixes n = map encode . chunkPrefixes n . reverse
 chunkPrefixes :: Int64 -> [Prefix] -> [[Prefix]]
-chunkPrefixes n pfxs = let (xl,l,_) = chunkPrefixes' n pfxs in (l : xl) 
+chunkPrefixes n pfxs = let (xl,l,_) = chunkPrefixes' n pfxs in (l : xl)
 chunkPrefixes' n = chunkEnumeratedPrefixes n . enumeratePrefixes
 
 -- chunkEnumeratedPrefixes :: Int -> [(Int,Prefix)] -> ([[Prefix]],[Prefix],Int)
@@ -153,7 +165,7 @@ enumeratePrefixes = map (\pfx -> (getLength pfx, pfx)) where
                                    | subnet < 33 = 5
                                    | otherwise = error $ "subnet mask of " ++ show subnet ++ " is > 32"
 
-instance Binary Prefix where 
+instance Binary Prefix where
 
     put (Prefix (subnet,ip)) | subnet == 0 = putWord8 0
                              | subnet < 9  = do putWord8 subnet

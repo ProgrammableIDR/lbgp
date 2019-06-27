@@ -19,7 +19,7 @@ import qualified Data.SortedList as SL -- package sorted-list
 import qualified Data.List
 
 import BGPRib.BGPData
-import BGPlib.BGPlib (IPrefix(..))
+import BGPlib.BGPlib (IPrefix,toIPrefix,fromIPrefix)
 
 -- TODO
 -- prefix tabel semantics require prefixes to be removed from the table when routes are lost.
@@ -35,7 +35,7 @@ type PrefixTable = IntMap.IntMap PrefixTableEntry
 type PrefixTableElement = (Int,SL.SortedList RouteData)
 
 instance {-# OVERLAPPING #-} Show PrefixTableElement where
-    show (k,v) = "(" ++ show (IPrefix k) ++ "," ++ show v ++ ")"
+    show (k,v) = "(" ++ show (toIPrefix k) ++ "," ++ show v ++ ")"
 
 instance {-# OVERLAPPING #-} Show PrefixTable where
     show = show . IntMap.toList
@@ -52,14 +52,14 @@ update pt pfxs route = Data.List.foldl' f (pt,[]) pfxs where
         (pt__,p) = updatePrefixTable pt_ pfx route
 
 updatePrefixTable :: PrefixTable -> IPrefix -> RouteData -> (PrefixTable,Bool)
-updatePrefixTable pt (IPrefix ipfx) route = (newPrefixTable, isNewBestRoute) where 
+updatePrefixTable pt ipfx route = (newPrefixTable, isNewBestRoute) where
     updatePrefixTableEntry :: PrefixTableEntry -> PrefixTableEntry -> PrefixTableEntry
     updatePrefixTableEntry singletonRoute routes = let newRoute = slHead singletonRoute
                                                        pIsNotOldRoute r = peerData r /= peerData newRoute
                                                    in SL.insert newRoute $ SL.filter pIsNotOldRoute routes
 
     newSingletonPrefixTableEntry = SL.singleton route
-    (maybeOldPrefixTableEntry, newPrefixTable) = IntMap.insertLookupWithKey f ipfx newSingletonPrefixTableEntry pt where
+    (maybeOldPrefixTableEntry, newPrefixTable) = IntMap.insertLookupWithKey f (fromIPrefix ipfx) newSingletonPrefixTableEntry pt where
         f _ = updatePrefixTableEntry
     newPrefixTableEntry = maybe newSingletonPrefixTableEntry ( updatePrefixTableEntry newSingletonPrefixTableEntry ) maybeOldPrefixTableEntry
     newBestRoute = slHead newPrefixTableEntry
@@ -68,7 +68,7 @@ updatePrefixTable pt (IPrefix ipfx) route = (newPrefixTable, isNewBestRoute) whe
 -- this function finds the best route for a specicif prefix
 -- if the requirement is bulk look up then another function might be better.....
 queryPrefixTable :: PrefixTable -> IPrefix -> Maybe RouteData
-queryPrefixTable table (IPrefix iprefix) = fmap slHead (IntMap.lookup iprefix table)
+queryPrefixTable table ipfx = fmap slHead (IntMap.lookup (fromIPrefix ipfx) table)
 
 {-
   Withdraw Operations
@@ -115,13 +115,13 @@ withdrawPeer prefixTable peerData = swapNgroom $ IntMap.mapAccumWithKey (updateF
                                                          -- however!!!! this can MAKE an empty list which we cannot delet in this operation
                                                          -- so we need a final preen before returning the Map to the RIB!!!!
             p route = peer == BGPRib.BGPData.peerData route
-            prefixList' = IPrefix prefix : prefixList
+            prefixList' = toIPrefix prefix : prefixList
 
 groomPrefixTable :: PrefixTable -> PrefixTable
 groomPrefixTable = IntMap.filter ( not . null )
 
 withdrawPrefixTable :: PrefixTable -> IPrefix -> PeerData -> (PrefixTable,Bool)
-withdrawPrefixTable pt (IPrefix ipfx) peer = (pt', wasBestRoute) where
+withdrawPrefixTable pt ipfx peer = (pt', wasBestRoute) where
     wasBestRoute = maybe
                          False -- This is the 'prefix not found' return value
                                -- there are really three possible outcomes, so a tri-valued resuklt could be used
@@ -131,7 +131,7 @@ withdrawPrefixTable pt (IPrefix ipfx) peer = (pt', wasBestRoute) where
                                --    or an external issue
                          (\oldRouteList -> peerData (slHead oldRouteList) == peer )
                          maybeOldRouteList
-    (maybeOldRouteList , pt') = IntMap.updateLookupWithKey tableUpdate ipfx pt
+    (maybeOldRouteList , pt') = IntMap.updateLookupWithKey tableUpdate (fromIPrefix ipfx) pt
     -- 'tableUpdate' is the 'inner' fundtion which does the sortde list update and posts back the result,
     -- including the instruction to delete the entry...
     tableUpdate :: Int -> PrefixTableEntry -> Maybe PrefixTableEntry
