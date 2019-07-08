@@ -4,6 +4,7 @@ import Control.Concurrent
 import qualified Data.Map.Strict as Data.Map
 import Control.Monad(unless,when,void)
 import Data.List(intercalate)
+import Data.Word(Word32)
 
 import BGPlib.BGPlib
 
@@ -97,6 +98,9 @@ getLocRib rib = do
     rib' <- readMVar rib
     return (prefixTable rib')
 
+evalLocalPref :: PeerData -> [PathAttribute] -> [Prefix] -> IO Word32
+evalLocalPref peerData pathAttributes pfxs = return (peerLocalPref peerData)
+
 ribPush :: Rib -> PeerData -> ParsedUpdate -> IO()
 ribPush rib routeData update = modifyMVar_ rib (ribPush' routeData update)
 
@@ -111,7 +115,8 @@ ribPush rib routeData update = modifyMVar_ rib (ribPush' routeData update)
     ribUpdateMany peerData pathAttributes routeId pfxs (Rib' prefixTable adjRibOutTables )
         | null pfxs = return (Rib' prefixTable adjRibOutTables )
         | otherwise = do
-              let routeData = makeRouteData peerData pathAttributes routeId
+              localPref <- evalLocalPref peerData pathAttributes pfxs
+              let routeData = makeRouteData peerData pathAttributes routeId localPref
                   ( prefixTable' , updates ) = BGPRib.PrefixTable.update prefixTable (fromPrefixes pfxs) routeData
               updateRibOutWithPeerData peerData routeData updates adjRibOutTables
               return $ Rib' prefixTable' adjRibOutTables
@@ -129,15 +134,14 @@ ribPush rib routeData update = modifyMVar_ rib (ribPush' routeData update)
             updateRibOutWithPeerData peerData nullRoute withdraws adjRibOutTables
             return $ Rib' prefixTable' adjRibOutTables
 
-    makeRouteData :: PeerData -> [PathAttribute] -> Int -> RouteData
-    makeRouteData peerData pathAttributes routeId = RouteData {..}
+    makeRouteData :: PeerData -> [PathAttribute] -> Int -> Word32 -> RouteData
+    makeRouteData peerData pathAttributes routeId localPref = RouteData {..}
         where
         pathLength = getASPathLength pathAttributes
         fromEBGP = isExternal peerData
         med = if fromEBGP then 0 else getMED pathAttributes
         nextHop = getNextHop pathAttributes
         origin = getOrigin pathAttributes
-        localPref = peerLocalPref peerData
 
 -- NOTE!!!! - we can be called with a null route in which case only the routeId is defined, and is equal 0!!!
 -- this is OK since we only get the routeId in this function
