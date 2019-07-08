@@ -218,7 +218,7 @@ runFSM g@Global{..} socketName peerName handle =
             peerPort = fromIntegral pp
             localIPv4 = fromHostAddress localIP
             localPort = fromIntegral lp
-            localPref = 0 -- TODO - source this somewhere sensible - config?
+            peerLocalPref = 0 -- TODO - source this somewhere sensible - config?
             isExternal = peerAS /= myAS gd
             peerData = PeerData { .. }
         registerEstablished collisionDetector peerBGPid peerName
